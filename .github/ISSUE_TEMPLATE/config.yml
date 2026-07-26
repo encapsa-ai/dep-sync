@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/encapsa-ai/dep-sync/discussions
+    about: For usage questions, workflow advice, or open-ended discussion, please start a discussion instead of an issue.
+  - name: Security vulnerability
+    url: https://github.com/encapsa-ai/dep-sync/security/advisories/new
+    about: Report a security issue privately.

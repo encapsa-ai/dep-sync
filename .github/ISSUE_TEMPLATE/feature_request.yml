@@ -1,0 +1,41 @@
+name: Feature request
+description: Suggest a new capability for dep-sync.
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        dep-sync is intentionally focused. Feature requests are welcome, but we say no to a lot in service of the offline-first, correctness-first goals. Please describe the use case first.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      placeholder: What does your workflow look like today, and where does dep-sync fall short?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would the ideal UX look like?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other tools or manual workflows you've tried.
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: dep-sync's constraints
+      description: Please confirm your request is compatible with these.
+      options:
+        - label: My request does not require network access
+          required: true
+        - label: My request does not require dep-sync to run `git`, `npm`, `pnpm`, or `yarn` commands on my behalf
+          required: false

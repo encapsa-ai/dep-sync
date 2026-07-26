@@ -1,52 +1,114 @@
+<div align="center">
+
 # dep-sync
 
-dep-sync is a local-first desktop application for visualizing and resolving
-version drift across internal npm libraries and the applications that consume
-them. It reads local `package.json` files only—there are no registry lookups or
-other network calls.
+**A local-first desktop app for visualizing and resolving version drift across internal npm packages.**
 
-The desktop shell is Tauri v2, the dependency engine is Rust, and the interface
-is React 19, Tailwind CSS v4, React Flow, and Zustand.
+No registry lookups. No network calls. Reads your `package.json` files, shows you what changed, and tells you the exact order to update in.
 
-## What it does
+[![CI](https://github.com/encapsa-ai/dep-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/encapsa-ai/dep-sync/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Tauri v2](https://img.shields.io/badge/Tauri-v2-24C8DB.svg)](https://v2.tauri.app/)
+[![Made with Rust](https://img.shields.io/badge/Rust-1.91+-orange.svg)](https://www.rust-lang.org/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
 
-- Scans configured `dependencies`, `devDependencies`, and `peerDependencies`
-- Keeps only dependencies whose names are also present in the config
-- Detects drift with Rust's `semver::VersionReq`
-- Shows a left-to-right dependency graph and a sortable list
-- Finds cycles and disables unsafe update ordering
-- Computes a stable, dependency-first cascading update order
-- Previews exact `package.json` changes before applying them
-- Preserves key order, indentation, trailing newline, and supported range style
-- Bumps library patch versions after an explicit confirmation
-- Opens the selected package in Terminal/iTerm or the file manager
-- Exports a deterministic Markdown context file for AI coding agents
+</div>
 
-dep-sync does not commit, publish, run package-manager commands, run tests, or
-modify external dependencies.
+---
 
-## Requirements
+## The problem
 
-- Node.js 20 or newer
-- pnpm 10 or newer
-- Rust 1.91 or newer
-- The [Tauri v2 platform prerequisites](https://v2.tauri.app/start/prerequisites/)
+If you maintain a family of internal npm packages that depend on each other — think `@yourco/ui` pulling in `@yourco/hooks`, `@yourco/forms`, `@yourco/icons`, all consumed by three or four apps — you already know the pain:
 
-On Linux, install WebKitGTK and the other Tauri system packages documented for
-your distribution.
+You publish a patch to `@yourco/hooks`. Now which of your other packages need their `package.json` bumped? In what order do you publish them so the graph converges? Which apps are stuck on stale ranges? And you need the answer **right now**, before the npm registry has caught up to what you just published.
 
-## Development
+Existing tools (`npm-check-updates`, `syncpack`, `manypkg`, `updated`) all hit the registry. That means stale answers when you need them most.
+
+## What dep-sync does
+
+- **Scans local `package.json` files only** — `dependencies`, `devDependencies`, and `peerDependencies`.
+- **Filters to internal packages only** — anything not in your config is ignored. This is a tool for *your* graph, not the whole world.
+- **Detects drift** using Rust's [`semver::VersionReq`](https://docs.rs/semver/) — the same crate Cargo uses.
+- **Renders a left-to-right dependency graph** and a sortable list view.
+- **Finds cycles** and refuses to compute an update order until they're resolved.
+- **Computes a stable, dependency-first update order** via Kahn's algorithm — libraries first, applications last within each layer.
+- **Previews the exact `package.json` changes** before you apply them.
+- **Preserves key order, indentation, trailing newline, and range style** (`"2.1.0"` stays exact, `"^0.2.1"` stays caret, `">=0.1.9"` stays a range). Diff-clean.
+- **Bumps library patch versions** with a confirmation.
+- **Opens Terminal, iTerm, or your file manager** at the selected package.
+- **Exports a Markdown context file for AI coding agents** — graph semantics, update order, drift, package paths, and an embedded JSON payload.
+
+## What dep-sync does **not** do
+
+- No git commits, tags, or pushes.
+- No `npm`/`pnpm`/`yarn publish`.
+- No test/build runs.
+- No modifications to external (non-internal) dependencies.
+- No telemetry. No network. Ever.
+
+You stay in the driver's seat. dep-sync tells you what needs to happen and prepares your files; you run the commands.
+
+---
+
+## Screenshots
+
+> _Screenshots coming — open a PR if you'd like to contribute one from your own package graph._
+
+---
+
+## Install
+
+Prebuilt binaries are attached to each [GitHub Release](https://github.com/encapsa-ai/dep-sync/releases):
+
+- **macOS (Apple Silicon / Intel):** `.dmg`
+- **Linux:** `.AppImage` and `.deb`
+
+macOS bundles are ad-hoc signed. On first launch, right-click the app → **Open** to bypass Gatekeeper.
+
+**Windows is not currently supported.** Contributions welcome (see [CONTRIBUTING.md](./CONTRIBUTING.md)).
+
+## Build from source
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) 20 or newer
+- [pnpm](https://pnpm.io/) 10 or newer
+- [Rust](https://www.rust-lang.org/tools/install) 1.91 or newer
+- The [Tauri v2 platform prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS (on Linux this means WebKitGTK and friends)
+
+### Build
 
 ```bash
+git clone https://github.com/encapsa-ai/dep-sync.git
+cd dep-sync
 pnpm install
+pnpm tauri build
+```
+
+Universal macOS binary:
+
+```bash
+rustup target add aarch64-apple-darwin x86_64-apple-darwin
+pnpm tauri build --target universal-apple-darwin
+```
+
+Linux AppImage + `.deb`:
+
+```bash
+pnpm tauri build --bundles appimage,deb
+```
+
+### Develop
+
+```bash
 pnpm tauri dev
 ```
 
 Frontend-only checks:
 
 ```bash
-pnpm test
-pnpm build
+pnpm test        # Vitest
+pnpm build       # tsc --noEmit && vite build
 ```
 
 Rust checks:
@@ -56,111 +118,155 @@ cargo test --manifest-path src-tauri/Cargo.toml
 cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 ```
 
-## Configuration
+---
 
-The app uses the operating system's standard per-user config directory:
+## Configure
 
-- macOS: `~/Library/Application Support/dep-sync/config.toml`
-- Linux: `$XDG_CONFIG_HOME/dep-sync/config.toml`, normally
-  `~/.config/dep-sync/config.toml`
+dep-sync reads a single TOML config from the OS's per-user config directory:
 
-Use the settings button to add packages with the native folder picker, or copy
-[`config.example.toml`](./config.example.toml) to that location and edit it.
-The `name` value must exactly match the corresponding `package.json` name; it is
-the join key for the graph.
+| OS | Path |
+|---|---|
+| macOS | `~/Library/Application Support/dep-sync/config.toml` |
+| Linux | `$XDG_CONFIG_HOME/dep-sync/config.toml` (usually `~/.config/dep-sync/config.toml`) |
+
+Add packages via the in-app **Settings** button (native folder picker auto-fills the name from `package.json`), or copy [`config.example.toml`](./config.example.toml) and edit it by hand.
 
 ```toml
 [[packages]]
-name = "@example/core"
-path = "/absolute/path/to/example-core"
-kind = "library"
-scope = "example"
+name = "@yourco/ui"
+path = "/absolute/path/to/yourco-ui"
+kind = "library"          # or "application"
+scope = "yourco"          # optional grouping label
 
 [[packages]]
-name = "example-app"
-path = "/absolute/path/to/example-app"
+name = "yourco-app"
+path = "/absolute/path/to/yourco-app"
 kind = "application"
-scope = "example"
+scope = "yourco"
 
 [settings]
 dep_fields = ["dependencies", "devDependencies", "peerDependencies"]
-terminal_command = ""
+terminal_command = ""     # empty = auto-detect; supports {path} placeholder
 ```
 
-An empty `terminal_command` enables platform detection. A custom command is
-spawned directly without a shell; include `{path}` where its working directory
-argument belongs.
+> **The `name` field must exactly match the `name` in the target `package.json`.** It's the join key for the entire graph.
 
-Jordan's Mac config is already installed at the macOS config path with 20
-active libraries and 5 applications. The pending `page-speed-deck` library
-listed in `docs/JORDAN_MAC_PATHS.md` is intentionally excluded for now.
+**Empty `terminal_command` triggers auto-detection.** A custom command is spawned directly (no shell), with `{path}` replaced by the target directory.
 
-## Using the app
+---
 
-1. Click **Rescan** or press **Command-R** after publishing or editing a
-   package.
-2. Inspect red dashed graph edges or use the sortable list to find drift.
-3. Follow **Update order** from top to bottom.
-4. Select **Sync deps** and review every proposed range change.
-5. Apply the change, then test, commit, and publish in a terminal yourself.
-6. Rescan before moving to the next package in the cascade.
+## Use it
 
-Use **Export** to save `dep-sync-agent-context.md`. The export includes graph
-semantics, the dependency-first update order, direct and reverse dependency
-indexes, current drift, package paths, errors/cycles, and an embedded JSON
-payload for agents that prefer structured input. Re-export after publishing or
-changing local versions so the file reflects current disk state.
+1. Publish or edit a package as usual.
+2. Click **Rescan** (or press **⌘R** / **Ctrl+R**).
+3. Red dashed edges and drift badges show what fell out of sync.
+4. Walk the **Update order** panel top-to-bottom.
+5. **Sync deps** → review the proposed range changes → apply.
+6. Test, commit, and publish in a terminal.
+7. Rescan and continue.
 
-Exact pins, caret ranges, tilde ranges, single `>=` lower bounds, and their
-`workspace:` variants are rewritten safely. A satisfying range is left alone.
-An outdated exotic range is shown as a warning and must be edited manually.
+### Range-style handling
 
-## Production builds
+| Input spec | Behavior |
+|---|---|
+| `"2.1.0"` (exact) | Rewritten to new exact version |
+| `"^0.2.1"` (caret) | Rewritten preserving caret |
+| `"~0.2.1"` (tilde) | Rewritten preserving tilde |
+| `">=0.1.9"` (lower bound) | Left alone if satisfied; otherwise lower bound updated |
+| `"workspace:*"` variants of the above | Handled |
+| `"workspace:^"` etc. | Handled |
+| Complex ranges (`>=1 <2`, `||`, etc.) | Shown as warning — edit manually |
 
-Build for the current operating system:
+Satisfying ranges are never rewritten. dep-sync will never widen a range for you.
 
-```bash
-pnpm tauri build
+### AI coding agent context
+
+Click **Export** to save `dep-sync-agent-context.md` — a deterministic Markdown file containing:
+
+- Full node/edge inventory with drift status
+- Dependency-first update order
+- Forward and reverse dependency indexes
+- Package paths on disk
+- Errors and cycles
+- Embedded JSON payload for structured consumers
+
+Re-export after each publish so the context reflects current disk state. Paste it into Claude Code, Codex, or any agent and it can reason about the entire graph without needing to run scans itself.
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  React 19 + Tailwind v4 + React Flow + Zustand           │
+│  (src/)                                                  │
+├──────────────────────────────────────────────────────────┤
+│  Tauri v2 command boundary (typed via serde)             │
+├──────────────────────────────────────────────────────────┤
+│  Rust engine (src-tauri/src/)                            │
+│    scanner   → tolerant local manifest parsing           │
+│    graph     → drift, cycles, topological ordering       │
+│    mutator   → atomic manifest writes, range-preserving  │
+│    config    → TOML load/save                            │
+│    terminal  → macOS/Linux terminal & file-manager spawn │
+│    export    → Markdown + JSON agent context             │
+└──────────────────────────────────────────────────────────┘
 ```
 
-Build a universal macOS app:
+**Key design choices:**
 
-```bash
-rustup target add aarch64-apple-darwin x86_64-apple-darwin
-pnpm tauri build --target universal-apple-darwin
-```
+- **`serde_json` with `preserve_order`** so `package.json` writes never reorder your keys.
+- **Temp-file + fsync + atomic rename** for every mutation. A crash mid-write leaves the original untouched.
+- **`semver::VersionReq::matches`** for every drift comparison. No hand-rolled range logic.
+- **Kahn's algorithm** for update ordering, alphabetical tiebreak within layers, applications sorted last within each layer.
+- **Cycles hard-block the update-order computation.** Between internal libraries they're almost always a bug worth surfacing loudly.
 
-Build Linux AppImage and Debian packages from a Linux host:
+Full source under [`src-tauri/src/`](./src-tauri/src/) and [`src/`](./src/).
 
-```bash
-pnpm tauri build --bundles appimage,deb
-```
+---
 
-macOS and Linux bundles should be built natively. Local macOS bundles are
-ad-hoc signed. Public distribution requires an Apple Developer ID certificate
-and notarization.
+## Comparison with other tools
 
-## Manual smoke test
+| Tool | Registry-free | Cross-repo (not monorepo-only) | Update-order DAG | Range-style preservation | Desktop UI |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **dep-sync** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [`npm-check-updates`](https://github.com/raineorshine/npm-check-updates) | ❌ | Partial | ❌ | Partial | ❌ |
+| [`syncpack`](https://github.com/JamieMason/syncpack) | ❌ | Monorepo-focused | ❌ | ✅ | ❌ |
+| [`manypkg`](https://github.com/Thinkmill/manypkg) | ❌ | Monorepo-only | ❌ | ✅ | ❌ |
+| pnpm workspaces | N/A | Monorepo-only | Partial | ✅ | ❌ |
 
-- Launch with a missing config and add a package with the folder picker
-- Confirm all configured packages appear after one rescan
-- Verify clean, drift, stale-target, application, missing-path, and cycle states
-- Compare a drift edge with both package manifests on disk
-- Confirm update order places dependencies before consumers and applications
-  last within a layer
-- Preview a sync and compare its proposed diff with a manual edit
-- Apply a sync and verify only the intended dependency strings changed
-- Bump a test library with `0.x.y`, `1.2.3`, and a pre-release version
-- Open a terminal and file manager at a selected package path
-- Disconnect from the network and confirm every feature still works
+dep-sync is designed for the case those tools don't cover: **an internal package family spread across multiple independent repos**, where you need to see the drift and update cascade immediately after a fresh publish.
 
-## Project layout
+---
 
-- `src-tauri/src/config.rs` — TOML config and atomic config writes
-- `src-tauri/src/scanner.rs` — tolerant local manifest scanning
-- `src-tauri/src/graph.rs` — drift, cycles, and topological ordering
-- `src-tauri/src/mutator.rs` — previews and atomic manifest mutation
-- `src-tauri/src/terminal.rs` — macOS/Linux terminal detection
-- `src-tauri/src/commands.rs` — typed Tauri command boundary
-- `src/components/` — graph, list, config, and update panels
-- `src/lib/store.ts` — desktop application state and actions
+## Roadmap
+
+- [ ] Windows support
+- [ ] File watcher for automatic rescan
+- [ ] Optional npm registry cross-check (for "did I forget to publish?" catches)
+- [ ] Minor and major bump modes with pre-release support
+- [ ] CLI companion for headless usage in CI
+- [ ] Yarn Berry and Bun workspace protocol support
+- [ ] Custom color themes
+
+Issues and PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for local setup, commit conventions, and the testing bar. This is a small, focused tool — new features are held to a high correctness standard, but bug fixes and platform ports are eagerly welcomed.
+
+## Security
+
+Found a vulnerability? Please see [SECURITY.md](./SECURITY.md) for disclosure instructions. dep-sync writes to your local `package.json` files, so we take input handling seriously.
+
+## License
+
+[MIT](./LICENSE) © Jordan Hudgens and dep-sync contributors.
+
+---
+
+<div align="center">
+<sub>Built with <a href="https://v2.tauri.app/">Tauri</a>, <a href="https://www.rust-lang.org/">Rust</a>, and <a href="https://react.dev/">React</a>. If dep-sync saved you a debugging session, a ⭐ on GitHub is deeply appreciated.</sub>
+</div>

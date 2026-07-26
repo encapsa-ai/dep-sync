@@ -1,0 +1,81 @@
+name: Bug report
+description: Something in dep-sync isn't working correctly.
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug report. Please include enough detail that we can reproduce the issue without going back and forth.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did dep-sync do, and what did you expect it to do?
+      placeholder: |
+        I clicked Sync deps on @yourco/ui and it rewrote a caret range as an exact version.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Minimal steps. If possible, include a redacted `package.json` excerpt.
+      placeholder: |
+        1. Configure two packages, A (v1.0.0) and B (depending on A with "^1.0.0")
+        2. Bump A to 1.0.1 on disk
+        3. Rescan
+        4. Click Sync deps on B
+        5. Expected: B's dep line becomes "^1.0.1". Actual: it became "1.0.1".
+    validations:
+      required: true
+
+  - type: input
+    id: dep-sync-version
+    attributes:
+      label: dep-sync version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-details
+    attributes:
+      label: OS version and architecture
+      placeholder: "macOS 14.5 arm64, or Ubuntu 24.04 x86_64"
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node / pnpm / Rust versions (if building from source)
+      placeholder: "node 20.11, pnpm 10.2, rustc 1.91"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or console output
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have removed any confidential paths or package names from the reproduction
+          required: true
+        - label: I have searched existing issues for a duplicate
+          required: true
