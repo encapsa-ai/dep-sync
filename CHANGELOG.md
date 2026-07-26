@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-07-26
+
+### Changed
+
+- Version tags now publish GitHub Releases automatically after the macOS, Linux, and Windows bundles all build successfully.
+
+### Fixed
+
+- Package name inputs in the configuration dialog retain focus while editing instead of remounting after every keystroke.
+
 ## [0.2.0] — 2026-07-25
 
 ### Added
@@ -43,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In-app config editor with native folder picker.
 - TOML config stored in the OS's per-user config directory.
 
-[Unreleased]: https://github.com/encapsa-ai/dep-sync/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/encapsa-ai/dep-sync/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/encapsa-ai/dep-sync/releases/tag/v0.2.1
 [0.2.0]: https://github.com/encapsa-ai/dep-sync/releases/tag/v0.2.0
 [0.1.0]: https://github.com/encapsa-ai/dep-sync/releases/tag/v0.1.0

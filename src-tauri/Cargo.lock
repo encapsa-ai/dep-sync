@@ -663,7 +663,7 @@ dependencies = [
 
 [[package]]
 name = "dep-sync"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "directories",
  "pretty_assertions",

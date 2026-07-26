@@ -1,6 +1,6 @@
 [package]
 name = "dep-sync"
-version = "0.2.0"
+version = "0.2.1"
 description = "Local dependency drift visualizer for internal packages"
 authors = ["Jordan Hudgens"]
 edition = "2021"
