@@ -220,7 +220,7 @@ export function ConfigEditor({
         <div className="max-h-[330px] overflow-y-auto">
           {draft.packages.map((item, index) => (
             <div
-              key={`${index}:${item.name}`}
+              key={index}
               className="grid grid-cols-[1.2fr_2fr_120px_140px_44px] items-center gap-2 border-b border-border/70 px-3 py-2 last:border-b-0"
             >
               <input
@@ -353,4 +353,3 @@ export function ConfigEditor({
     </Modal>
   );
 }
-
