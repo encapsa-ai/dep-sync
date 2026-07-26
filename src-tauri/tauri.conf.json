@@ -34,7 +34,7 @@
     "category": "DeveloperTool",
     "shortDescription": "Visualize and resolve internal package version drift",
     "longDescription": "A local-first dependency graph and version drift manager for internal npm packages.",
-    "copyright": "Copyright © 2026 Jordan Hudgens",
+    "copyright": "Copyright © 2026 Encapsa, Inc.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

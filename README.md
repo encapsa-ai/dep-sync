@@ -4,7 +4,7 @@
 
 **A local-first desktop app for visualizing and resolving version drift across internal npm packages.**
 
-No registry lookups. No network calls. Reads your `package.json` files, shows you what changed, and tells you the exact order to update in.
+No registry lookups. No network calls. Reads your `package.json` files, shows you what changed, and tells you the exact order to update in. An [Encapsa](https://encapsa.ai) open source project.
 
 [![CI](https://github.com/encapsa-ai/dep-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/encapsa-ai/dep-sync/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
@@ -276,7 +276,7 @@ Found a vulnerability? Please see [SECURITY.md](./SECURITY.md) for disclosure in
 
 ## License
 
-[MIT](./LICENSE) © Jordan Hudgens and dep-sync contributors.
+[MIT](./LICENSE) © Encapsa, Inc. and dep-sync contributors.
 
 ---
 
