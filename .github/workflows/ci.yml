@@ -81,3 +81,18 @@ jobs:
       - name: cargo test
         working-directory: src-tauri
         run: cargo test --all-targets
+
+      - name: cargo test (network isolated)
+        if: runner.os == 'Linux'
+        working-directory: src-tauri
+        shell: bash
+        run: |
+          cargo_bin="$(command -v cargo)"
+          sudo env \
+            "HOME=$HOME" \
+            "PATH=$PATH" \
+            "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}" \
+            "RUSTUP_HOME=${RUSTUP_HOME:-$HOME/.rustup}" \
+            CARGO_NET_OFFLINE=true \
+            unshare --net --kill-child -- \
+            "$cargo_bin" test --all-targets --locked

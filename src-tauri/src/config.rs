@@ -175,10 +175,10 @@ mod tests {
     fn config_round_trips_through_toml() {
         let config = Config {
             packages: vec![PackageConfig {
-                name: "@opensite/ui".to_string(),
-                path: PathBuf::from("/tmp/opensite-ui"),
+                name: "@example/ui".to_string(),
+                path: PathBuf::from("/tmp/example-ui"),
                 kind: PackageKind::Library,
-                scope: Some("opensite".to_string()),
+                scope: Some("example".to_string()),
             }],
             settings: Settings::default(),
         };
@@ -191,8 +191,8 @@ mod tests {
     #[test]
     fn validation_rejects_duplicate_names() {
         let package = PackageConfig {
-            name: "@opensite/ui".to_string(),
-            path: PathBuf::from("/tmp/opensite-ui"),
+            name: "@example/ui".to_string(),
+            path: PathBuf::from("/tmp/example-ui"),
             kind: PackageKind::Library,
             scope: None,
         };
