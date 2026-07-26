@@ -1,6 +1,6 @@
 [package]
 name = "dep-sync"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local dependency drift visualizer for internal packages"
 authors = ["Jordan Hudgens"]
 edition = "2021"
@@ -28,4 +28,3 @@ toml = "0.9"
 
 [dev-dependencies]
 pretty_assertions = "1"
-

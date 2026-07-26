@@ -1,10 +1,12 @@
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::{
-    fs::{self, File, OpenOptions},
-    io::Write,
+    fs,
     path::{Path, PathBuf},
 };
+
+#[cfg(unix)]
+use std::fs::File;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -121,50 +123,36 @@ pub fn validate(config: &Config) -> Result<(), String> {
 }
 
 pub fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
     let parent = path
         .parent()
         .ok_or_else(|| format!("{} has no parent directory", path.display()))?;
     fs::create_dir_all(parent)
         .map_err(|error| format!("Could not create {}: {error}", parent.display()))?;
 
-    let temp_name = format!(
-        ".{}.dep-sync-{}.tmp",
-        path.file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("config"),
-        std::process::id()
-    );
-    let temp_path = parent.join(temp_name);
+    let mut temp = NamedTempFile::new_in(parent).map_err(|error| {
+        format!(
+            "Could not create a temp file in {}: {error}",
+            parent.display()
+        )
+    })?;
+    temp.write_all(bytes)
+        .map_err(|error| format!("Could not write temp file for {}: {error}", path.display()))?;
+    temp.as_file()
+        .sync_all()
+        .map_err(|error| format!("Could not sync temp file for {}: {error}", path.display()))?;
 
-    let result = (|| -> Result<(), String> {
-        let mut file = OpenOptions::new()
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open(&temp_path)
-            .map_err(|error| format!("Could not create {}: {error}", temp_path.display()))?;
-        file.write_all(bytes)
-            .map_err(|error| format!("Could not write {}: {error}", temp_path.display()))?;
-        file.sync_all()
-            .map_err(|error| format!("Could not sync {}: {error}", temp_path.display()))?;
-        fs::rename(&temp_path, path).map_err(|error| {
-            format!(
-                "Could not atomically replace {} with {}: {error}",
-                path.display(),
-                temp_path.display()
-            )
-        })?;
+    temp.persist(path)
+        .map_err(|error| format!("Could not atomically replace {}: {error}", path.display()))?;
 
-        if let Ok(directory) = File::open(parent) {
-            let _ = directory.sync_all();
-        }
-        Ok(())
-    })();
-
-    if result.is_err() {
-        let _ = fs::remove_file(&temp_path);
+    #[cfg(unix)]
+    if let Ok(directory) = File::open(parent) {
+        let _ = directory.sync_all();
     }
-    result
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -202,5 +190,19 @@ mod tests {
         };
 
         assert!(validate(&config).is_err());
+    }
+
+    #[test]
+    fn atomic_write_replaces_an_existing_file() {
+        let directory = tempfile::tempdir().expect("temporary directory should exist");
+        let path = directory.path().join("config.toml");
+        fs::write(&path, b"before").expect("fixture should be written");
+
+        atomic_write(&path, b"after").expect("atomic replacement should succeed");
+
+        assert_eq!(
+            fs::read(&path).expect("replacement should be readable"),
+            b"after"
+        );
     }
 }

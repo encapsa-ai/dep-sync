@@ -24,12 +24,14 @@ import { ListView } from "./components/ListView";
 import { UpdateOrderList } from "./components/UpdateOrderList";
 import { UpdatePanel } from "./components/UpdatePanel";
 import { Button, IconButton, Kbd, Modal, Spinner } from "./components/ui";
+import { isMac } from "./lib/platform";
 import { isRescanShortcut } from "./lib/shortcuts";
 import { desktop } from "./lib/tauri";
 import { useAppStore } from "./lib/store";
 import type { GraphNode, SyncPreview } from "./lib/types";
 
 type ViewMode = "graph" | "list";
+const RESCAN_HINT = isMac() ? "⌘R" : "Ctrl+R";
 
 export default function App() {
   const {
@@ -257,7 +259,7 @@ export default function App() {
               className={`size-3.5 ${loading ? "animate-spin" : ""}`}
             />
             Rescan
-            <Kbd>⌘R</Kbd>
+            <Kbd>{RESCAN_HINT}</Kbd>
           </Button>
           <Button
             size="sm"

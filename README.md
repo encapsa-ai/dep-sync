@@ -75,10 +75,11 @@ Prebuilt binaries are attached to each [GitHub Release](https://github.com/encap
 
 - **macOS (Apple Silicon / Intel):** `.dmg`
 - **Linux:** `.AppImage` and `.deb`
+- **Windows 10/11 (x64):** `.exe` (NSIS installer)
 
 macOS bundles are ad-hoc signed. On first launch, right-click the app → **Open** to bypass Gatekeeper.
 
-**Windows is not currently supported.** Contributions welcome (see [CONTRIBUTING.md](./CONTRIBUTING.md)).
+On Windows, SmartScreen will warn on first launch because the installer is unsigned. Click **More info → Run anyway** to proceed. Signing is on the roadmap once the project has a code-signing certificate.
 
 ## Build from source
 
@@ -88,6 +89,7 @@ macOS bundles are ad-hoc signed. On first launch, right-click the app → **Open
 - [pnpm](https://pnpm.io/) 10 or newer
 - [Rust](https://www.rust-lang.org/tools/install) 1.91 or newer
 - The [Tauri v2 platform prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS (on Linux this means WebKitGTK and friends)
+- Windows builds require the WebView2 Runtime. It is preinstalled on current Windows 10 and Windows 11 systems; the NSIS installer embeds Microsoft's bootstrapper for systems where it is missing. See [Microsoft's WebView2 download page](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) for manual installation.
 
 ### Build
 
@@ -109,6 +111,12 @@ Linux AppImage + `.deb`:
 
 ```bash
 pnpm tauri build --bundles appimage,deb
+```
+
+Windows NSIS installer:
+
+```powershell
+pnpm tauri build --bundles nsis
 ```
 
 ### Develop
@@ -141,6 +149,7 @@ dep-sync reads a single TOML config from the OS's per-user config directory:
 |---|---|
 | macOS | `~/Library/Application Support/dep-sync/config.toml` |
 | Linux | `$XDG_CONFIG_HOME/dep-sync/config.toml` (usually `~/.config/dep-sync/config.toml`) |
+| Windows | `%APPDATA%\dep-sync\config.toml` |
 
 Add packages via the in-app **Settings** button (native folder picker auto-fills the name from `package.json`), or copy [`config.example.toml`](./config.example.toml) and edit it by hand.
 
@@ -163,6 +172,8 @@ terminal_command = ""     # empty = auto-detect; supports {path} placeholder
 ```
 
 > **The `name` field must exactly match the `name` in the target `package.json`.** It's the join key for the entire graph.
+
+> **Windows path syntax in `config.toml`:** TOML treats `\` as an escape character in double-quoted strings. On Windows, either use single-quoted literal strings — `path = 'C:\Users\jdoe\code\ui'` — or double the backslashes — `path = "C:\\Users\\jdoe\\code\\ui"`. Forward slashes also work: `path = "C:/Users/jdoe/code/ui"`.
 
 **Empty `terminal_command` triggers auto-detection.** A custom command is spawned directly (no shell), with `{path}` replaced by the target directory.
 
@@ -221,7 +232,7 @@ Re-export after each publish so the context reflects current disk state. Paste i
 │    graph     → drift, cycles, topological ordering       │
 │    mutator   → atomic manifest writes, range-preserving  │
 │    config    → TOML load/save                            │
-│    terminal  → macOS/Linux terminal & file-manager spawn │
+│    terminal  → macOS/Linux/Windows terminal spawn         │
 │    export    → Markdown + JSON agent context             │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -229,7 +240,7 @@ Re-export after each publish so the context reflects current disk state. Paste i
 **Key design choices:**
 
 - **`serde_json` with `preserve_order`** so `package.json` writes never reorder your keys.
-- **Temp-file + fsync + atomic rename** for every mutation. A crash mid-write leaves the original untouched.
+- **Temp-file + fsync + atomic replacement** for every mutation. A crash mid-write leaves the original untouched.
 - **`semver::VersionReq::matches`** for every drift comparison. No hand-rolled range logic.
 - **Kahn's algorithm** for update ordering, alphabetical tiebreak within layers, applications sorted last within each layer.
 - **Cycles hard-block the update-order computation.** Between internal libraries they're almost always a bug worth surfacing loudly.
@@ -254,7 +265,7 @@ dep-sync is designed for the case those tools don't cover: **an internal package
 
 ## Roadmap
 
-- [ ] Windows support
+- [x] Windows support
 - [ ] File watcher for automatic rescan
 - [ ] Optional npm registry cross-check (for "did I forget to publish?" catches)
 - [ ] Minor and major bump modes with pre-release support

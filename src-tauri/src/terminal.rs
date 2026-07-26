@@ -19,10 +19,15 @@ pub fn open(path: &Path, settings: &Settings) -> Result<(), String> {
         open_linux(path)
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+    #[cfg(target_os = "windows")]
+    {
+        open_windows(path)
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
     {
         let _ = path;
-        Err("Open Terminal is supported on macOS and Linux".to_string())
+        Err("Open Terminal is supported on macOS, Linux, and Windows".to_string())
     }
 }
 
@@ -152,6 +157,59 @@ fn shell_quote(path: &Path) -> String {
     format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
+#[cfg(target_os = "windows")]
+fn open_windows(path: &Path) -> Result<(), String> {
+    let path_text = path.display().to_string();
+
+    if executable_on_path("wt.exe").is_some() {
+        return Command::new("wt.exe")
+            .args(["-d", &path_text])
+            .spawn()
+            .map(|_| ())
+            .map_err(|error| format!("Could not launch Windows Terminal: {error}"));
+    }
+
+    if executable_on_path("pwsh.exe").is_some() {
+        let command = format!("Set-Location -LiteralPath '{}'", ps_quote(&path_text));
+        return Command::new("pwsh.exe")
+            .args(["-NoExit", "-Command", &command])
+            .current_dir(path)
+            .spawn()
+            .map(|_| ())
+            .map_err(|error| format!("Could not launch PowerShell 7: {error}"));
+    }
+
+    if executable_on_path("powershell.exe").is_some() {
+        let command = format!("Set-Location -LiteralPath '{}'", ps_quote(&path_text));
+        return Command::new("powershell.exe")
+            .args(["-NoExit", "-Command", &command])
+            .current_dir(path)
+            .spawn()
+            .map(|_| ())
+            .map_err(|error| format!("Could not launch Windows PowerShell: {error}"));
+    }
+
+    Command::new("cmd.exe")
+        .args(["/K", &format!("cd /D \"{path_text}\"")])
+        .current_dir(path)
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| format!("Could not launch cmd.exe: {error}"))
+}
+
+#[cfg(target_os = "windows")]
+fn executable_on_path(program: &str) -> Option<std::path::PathBuf> {
+    let path = std::env::var_os("PATH")?;
+    std::env::split_paths(&path)
+        .map(|directory| directory.join(program))
+        .find(|candidate| candidate.is_file())
+}
+
+#[cfg(target_os = "windows")]
+fn ps_quote(value: &str) -> String {
+    value.replace('\'', "''")
+}
+
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
@@ -166,5 +224,16 @@ mod tests {
         assert!(script.contains("current session of newWindow to write text"));
         assert!(script.contains("cd '/tmp/project with spaces'"));
         assert!(!script.contains("profile command"));
+    }
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod windows_tests {
+    use super::*;
+
+    #[test]
+    fn powershell_quoting_escapes_single_quotes() {
+        assert_eq!(ps_quote("C:\\Users\\jdoe"), "C:\\Users\\jdoe");
+        assert_eq!(ps_quote("C:\\path with ' quote"), "C:\\path with '' quote");
     }
 }
