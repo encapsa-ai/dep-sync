@@ -127,4 +127,4 @@ jobs:
           if [[ "$GITHUB_REF_NAME" != *-* ]]; then
             release_flags+=(--latest)
           fi
-          gh release edit "$GITHUB_REF_NAME" "${release_flags[@]}"
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" "${release_flags[@]}"
