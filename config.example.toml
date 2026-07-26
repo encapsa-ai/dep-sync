@@ -1,0 +1,20 @@
+# Copy this file to the platform config path shown in the app's settings.
+# Package names must exactly match the corresponding package.json "name".
+
+[[packages]]
+name = "@example/core"
+path = "/absolute/path/to/example-core"
+kind = "library"
+scope = "example"
+
+[[packages]]
+name = "example-app"
+path = "/absolute/path/to/example-app"
+kind = "application"
+scope = "example"
+
+[settings]
+dep_fields = ["dependencies", "devDependencies", "peerDependencies"]
+# Optional direct executable command. Use {path} as a working-directory placeholder.
+terminal_command = ""
+

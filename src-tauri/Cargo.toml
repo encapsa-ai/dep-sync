@@ -1,0 +1,31 @@
+[package]
+name = "dep-sync"
+version = "0.1.0"
+description = "Local dependency drift visualizer for internal packages"
+authors = ["Jordan Hudgens"]
+edition = "2021"
+rust-version = "1.91"
+default-run = "dep-sync"
+
+[lib]
+name = "dep_sync_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+directories = "6"
+semver = { version = "1", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+shell-words = "1"
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tempfile = "3"
+toml = "0.9"
+
+[dev-dependencies]
+pretty_assertions = "1"
+

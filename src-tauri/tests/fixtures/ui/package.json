@@ -1,0 +1,9 @@
+{
+  "name": "@fixture/ui",
+  "version": "3.2.1",
+  "dependencies": {
+    "@fixture/hooks": "2.1.0",
+    "@fixture/img": "0.4.9"
+  }
+}
+

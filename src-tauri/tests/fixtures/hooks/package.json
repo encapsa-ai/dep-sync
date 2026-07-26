@@ -1,0 +1,8 @@
+{
+  "name": "@fixture/hooks",
+  "version": "2.2.0",
+  "dependencies": {
+    "@fixture/core": "^1.0.0"
+  }
+}
+

@@ -1,0 +1,8 @@
+{
+  "name": "fixture-app",
+  "version": "0.1.0",
+  "dependencies": {
+    "@fixture/ui": "^3.2.0"
+  }
+}
+
