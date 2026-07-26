@@ -12,6 +12,8 @@ No registry lookups. No network calls. Reads your `package.json` files, shows yo
 [![Made with Rust](https://img.shields.io/badge/Rust-1.91+-orange.svg)](https://www.rust-lang.org/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
 
+<img width="800" height="452" alt="dep-sync-animation" src="https://github.com/user-attachments/assets/90fa7b4b-3c42-487a-806d-2ae5c8e9f7fe" />
+
 </div>
 
 ---
@@ -52,7 +54,18 @@ You stay in the driver's seat. dep-sync tells you what needs to happen and prepa
 
 ## Screenshots
 
-> _Screenshots coming — open a PR if you'd like to contribute one from your own package graph._
+### Dependency Graph View
+
+<img width="3000" height="1694" alt="Dependency Graph View" src="https://github.com/user-attachments/assets/528f523b-0a8e-4dae-ac2a-8f8b8e97037d" />
+
+### Dependency List View
+
+<img width="3000" height="1694" alt="Dependency List View" src="https://github.com/user-attachments/assets/4a314ca0-677a-4632-9d2f-082be6f008fc" />
+
+### Sync Dialog
+
+<img width="3000" height="1694" alt="Sync Dialog" src="https://github.com/user-attachments/assets/e2d0e63b-46a0-49fc-a7ae-c4d5f7b64db5" />
+
 
 ---
 
